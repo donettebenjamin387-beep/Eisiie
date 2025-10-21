@@ -21,7 +21,7 @@ Screen.Parent = PlayerGui
 local Root = Instance.new("Frame", Screen)
 Root.Name = "Root"
 Root.AnchorPoint = Vector2.new(0.5,0.5)
-Root.Position = UDim2.new(0.5,0.5)
+Root.Position = UDim2.new(0.5, 0, 0.5, 0)
 Root.Size = UDim2.fromOffset(860,540)
 Root.BackgroundColor3 = Color3.fromRGB(14,16,18)
 Root.BorderSizePixel = 0
@@ -174,7 +174,7 @@ Title.TextXAlignment = Enum.TextXAlignment.Left
 
 local Sub = Instance.new("TextLabel", landingBox)
 Sub.Size = UDim2.new(1,0,0,36)
-Sub.Position = UDim2.new(0,0,0,70)
+Sub.Position = UDim2.new(0,0,0,98)
 Sub.BackgroundTransparency = 1
 Sub.Font = Enum.Font.Gotham
 Sub.TextSize = 14
@@ -492,14 +492,17 @@ AutoToggle.MouseButton1Click:Connect(function()
 end)
 
 local antiAFKOn = false
-AFKBtn.MouseButton1Click:Connect(function()
-	antiAFKOn = true
-	local vu = game:GetService("VirtualUser")
-	LocalPlayer.Idled:Connect(function()
+local vu = game:GetService("VirtualUser")
+LocalPlayer.Idled:Connect(function()
+	if antiAFKOn then
 		vu:CaptureController()
 		vu:ClickButton2(Vector2.new(0,0))
-	end)
-	notify("Anti-AFK running")
+	end
+end)
+AFKBtn.MouseButton1Click:Connect(function()
+	antiAFKOn = not antiAFKOn
+	AFKBtn.Text = antiAFKOn and "Disable Anti-AFK" or "Enable Anti-AFK"
+	notify("Anti-AFK " .. (antiAFKOn and "enabled" or "disabled"))
 end)
 
 local antiStealOn = false

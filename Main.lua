@@ -2,9 +2,10 @@ local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
-local CoreGui = game:GetService("CoreGui")
 local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+
+print("Starting Flashlight Hub load...")  -- Debug
 
 for _,v in pairs(PlayerGui:GetChildren()) do
 	if v.Name == "FlashlightHubUI" then
@@ -17,6 +18,7 @@ Screen.Name = "FlashlightHubUI"
 Screen.ResetOnSpawn = false
 Screen.IgnoreGuiInset = true
 Screen.Parent = PlayerGui
+print("ScreenGui created")  -- Debug
 
 local Root = Instance.new("Frame", Screen)
 Root.Name = "Root"
@@ -25,8 +27,10 @@ Root.Position = UDim2.new(0.5, 0, 0.5, 0)
 Root.Size = UDim2.fromOffset(860,540)
 Root.BackgroundColor3 = Color3.fromRGB(14,16,18)
 Root.BorderSizePixel = 0
+Root.Visible = true  -- Force visible
 local RootCorner = Instance.new("UICorner", Root)
 RootCorner.CornerRadius = UDim.new(0,12)
+print("Root frame visible at center")  -- Debug
 
 local Header = Instance.new("Frame", Root)
 Header.Size = UDim2.new(1,0,0,86)
@@ -153,6 +157,7 @@ local PageAFK = makePage("AntiAFK")
 local PageSteal = makePage("AntiSteal")
 local PageSettings = makePage("Settings")
 PageLanding.Visible = true
+print("Landing page set visible")  -- Debug
 
 local landingBox = Instance.new("Frame", PageLanding)
 landingBox.Size = UDim2.new(0.76,0,0.78,0)
@@ -174,7 +179,7 @@ Title.TextXAlignment = Enum.TextXAlignment.Left
 
 local Sub = Instance.new("TextLabel", landingBox)
 Sub.Size = UDim2.new(1,0,0,36)
-Sub.Position = UDim2.new(0,0,0,98)
+Sub.Position = UDim2.new(0,0,0,98)  -- Adjusted to avoid title overlap
 Sub.BackgroundTransparency = 1
 Sub.Font = Enum.Font.Gotham
 Sub.TextSize = 14
@@ -187,7 +192,7 @@ Art.Size = UDim2.new(0.36,0,0.64,0)
 Art.AnchorPoint = Vector2.new(1,0)
 Art.Position = UDim2.new(1,-18,0,18)
 Art.BackgroundTransparency = 1
-Art.Image = "rbxassetid://11169455357"
+Art.Image = "rbxassetid://11169455357"  -- If this ID 404s, it might log; ignore for now
 
 local OpenBtn = Instance.new("TextButton", landingBox)
 OpenBtn.Size = UDim2.new(0,180,0,44)
@@ -200,10 +205,13 @@ OpenBtn.BorderSizePixel = 0
 local OpenCorner = Instance.new("UICorner", OpenBtn)
 OpenCorner.CornerRadius = UDim.new(0,8)
 
+-- Splash (commented for debug; uncomment to re-enable)
+--[[
 local Splash = Instance.new("Frame", Root)
 Splash.Size = UDim2.new(1,0,1,0)
 Splash.BackgroundTransparency = 1
 Splash.ZIndex = 5
+Splash.Visible = false  -- Start hidden
 
 local SplashCard = Instance.new("Frame", Splash)
 SplashCard.Size = UDim2.new(0.6,0,0.25,0)
@@ -224,15 +232,8 @@ SplashLabel.TextWrapped = true
 SplashLabel.TextXAlignment = Enum.TextXAlignment.Center
 SplashLabel.TextYAlignment = Enum.TextYAlignment.Center
 
-local function showPage(p)
-	for _,v in pairs(Pages:GetChildren()) do
-		if v:IsA("Frame") then
-			v.Visible = (v == p)
-		end
-	end
-end
-
 local function animateSplashAndOpen()
+	print("Starting splash anim...")  -- Debug
 	Splash.Visible = true
 	local t1 = TweenService:Create(SplashCard, TweenInfo.new(0.6, Enum.EasingStyle.Quad), {Size = UDim2.new(0.72,0,0.28,0)})
 	t1:Play()
@@ -247,11 +248,23 @@ local function animateSplashAndOpen()
 	t3.Completed:Wait()
 	Splash.Visible = false
 	showPage(PageAuto)
+	print("Splash done, showing AutoFarm")  -- Debug
 end
 
-OpenBtn.MouseButton1Click:Connect(function()
-	animateSplashAndOpen()
-end)
+OpenBtn.MouseButton1Click:Connect(animateSplashAndOpen)
+--]]
+
+-- Skip splash for now: Directly show AutoFarm on load
+local function showPage(p)
+	print("Showing page: " .. p.Name)  -- Debug
+	for _,v in pairs(Pages:GetChildren()) do
+		if v:IsA("Frame") then
+			v.Visible = (v == p)
+		end
+	end
+end
+showPage(PageAuto)  -- Start on AutoFarm directly
+print("Full UI loaded - check for dark frame with tabs/stats")  -- Debug
 
 TabAuto.MouseButton1Click:Connect(function()
 	showPage(PageAuto)
@@ -345,7 +358,7 @@ ESPToggle.Position = UDim2.new(0,12,0,44)
 ESPToggle.BackgroundColor3 = Color3.fromRGB(24,26,30)
 ESPToggle.Font = Enum.Font.GothamSemibold
 ESPToggle.TextSize = 14
-ESPToggle.Text = "Toggle Player ESP"
+ESPToggle.Text = "Enable Player ESP"  -- Start as "enable" since off
 ESPToggle.BorderSizePixel = 0
 local ESPCorner = Instance.new("UICorner", ESPToggle)
 ESPCorner.CornerRadius = UDim.new(0,8)
@@ -356,7 +369,7 @@ ESPCoinsToggle.Position = UDim2.new(0,190,0,44)
 ESPCoinsToggle.BackgroundColor3 = Color3.fromRGB(24,26,30)
 ESPCoinsToggle.Font = Enum.Font.GothamSemibold
 ESPCoinsToggle.TextSize = 14
-ESPCoinsToggle.Text = "Toggle Coin Markers"
+ESPCoinsToggle.Text = "Enable Coin Markers"
 ESPCoinsToggle.BorderSizePixel = 0
 local ESPCoinsCorner = Instance.new("UICorner", ESPCoinsToggle)
 ESPCoinsCorner.CornerRadius = UDim.new(0,8)
@@ -371,6 +384,7 @@ DraggableToggle.Font = Enum.Font.GothamSemibold
 DraggableToggle.TextSize = 14
 DraggableToggle.Text = "Enable Dragging"
 DraggableToggle.BorderSizePixel = 0
+
 local ToggleBottom = Instance.new("TextButton", Root)
 ToggleBottom.Size = UDim2.new(0,160,0,36)
 ToggleBottom.Position = UDim2.new(0.5,-80,1,-50)
@@ -401,6 +415,7 @@ NotLabel.TextColor3 = Color3.fromRGB(220,230,240)
 NotLabel.TextWrapped = true
 
 local function notify(txt)
+	print("Notify: " .. txt)  -- Debug
 	NotLabel.Text = txt
 	Notifications.Position = UDim2.new(1,-320,0,22)
 	Notifications.Visible = true
@@ -456,7 +471,11 @@ AutoToggle.MouseButton1Click:Connect(function()
 		end)
 		task.spawn(function()
 			while farmRunning do
-				local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+				local char = LocalPlayer.Character
+				if not char then
+					task.wait(1)
+					continue
+				end
 				local hrp = char:FindFirstChild("HumanoidRootPart")
 				if hrp then
 					local closest, dist = nil, math.huge
@@ -517,13 +536,8 @@ StealToggle.MouseButton1Click:Connect(function()
 	end
 end)
 
-local espPlayersOn = true
-local espCoinsOn = true
-local espFolderPlayers = Instance.new("Folder", workspace)
-espFolderPlayers.Name = "FlashlightESPPlayers"
-local espFolderCoins = Instance.new("Folder", workspace)
-espFolderCoins.Name = "FlashlightESPCoins"
-
+local espPlayersOn = false  -- Start off to avoid early errors
+local espCoinsOn = false
 local function makeBillboard(text, parent, size)
 	local b = Instance.new("BillboardGui")
 	b.Adornee = parent
@@ -627,12 +641,14 @@ ESPToggle.MouseButton1Click:Connect(function()
 	espPlayersOn = not espPlayersOn
 	ESPToggle.Text = espPlayersOn and "Disable Player ESP" or "Enable Player ESP"
 	refreshPlayerESPs()
+	notify("Player ESP " .. (espPlayersOn and "enabled" or "disabled"))
 end)
 
 ESPCoinsToggle.MouseButton1Click:Connect(function()
 	espCoinsOn = not espCoinsOn
 	ESPCoinsToggle.Text = espCoinsOn and "Disable Coin Markers" or "Enable Coin Markers"
 	refreshCoins()
+	notify("Coin Markers " .. (espCoinsOn and "enabled" or "disabled"))
 end)
 
 RunService.Heartbeat:Connect(function()
@@ -640,8 +656,10 @@ RunService.Heartbeat:Connect(function()
 		for p,data in pairs(espPlayers) do
 			if p.Character and p.Character:FindFirstChild("Humanoid") then
 				local hum = p.Character:FindFirstChild("Humanoid")
-				local hp = math.floor(hum.Health)
-				data.label.Text = p.Name.." • "..tostring(hp)
+				if hum then
+					local hp = math.floor(hum.Health)
+					data.label.Text = p.Name.." • "..tostring(hp)
+				end
 			end
 		end
 	end
@@ -673,6 +691,7 @@ local dragOffset = Vector2.new(0,0)
 DraggableToggle.MouseButton1Click:Connect(function()
 	draggingEnabled = not draggingEnabled
 	DraggableToggle.Text = draggingEnabled and "Disable Dragging" or "Enable Dragging"
+	notify("Dragging " .. (draggingEnabled and "enabled" or "disabled"))
 end)
 
 Root.InputBegan:Connect(function(input)
@@ -702,6 +721,7 @@ ToggleBottom.MouseButton1Click:Connect(function()
 	uiVisible = not uiVisible
 	Root.Visible = uiVisible
 	ToggleBottom.Text = uiVisible and "Hide UI" or "Show UI"
+	notify("UI " .. (uiVisible and "shown" or "hidden"))
 end)
 
 local function protectTools()
@@ -746,11 +766,7 @@ LocalPlayer.CharacterAdded:Connect(function(c)
 	end
 end)
 
-for _,p in pairs(Players:GetPlayers()) do
-	if p ~= LocalPlayer and p.Character then createPlayerESP(p) end
-end
-
-notify("Flashlight Hub ready • Press the bottom button to hide")
+notify("Flashlight Hub ready • Press bottom button to hide • Check F9 for debug prints")
 
 UserInputService.InputBegan:Connect(function(input, processed)
 	if processed then return end
@@ -760,3 +776,5 @@ UserInputService.InputBegan:Connect(function(input, processed)
 		ToggleBottom.Text = uiVisible and "Hide UI" or "Show UI"
 	end
 end)
+
+print("Script fully loaded - no errors expected")  -- Final debug

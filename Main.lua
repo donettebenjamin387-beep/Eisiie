@@ -156,65 +156,9 @@ local PageAFK = makePage("AntiAFK")
 local PageSteal = makePage("AntiSteal")
 local PageSettings = makePage("Settings")
 
--- Adapted landing screen from provided loading script
-local PageLanding = makePage("Landing")
-PageLanding.Visible = true
-print("Landing page set visible")  -- Debug
-
-local landingFrame = Instance.new("Frame")
-landingFrame.Parent = PageLanding
-landingFrame.Size = UDim2.new(1,0,1,0)
-landingFrame.BackgroundTransparency = 0
-landingFrame.BackgroundColor3 = Color3.fromRGB(0,20,40)
-print("Landing frame created")  -- Debug
-
-local textLabel = Instance.new("TextLabel")
-textLabel.Size = UDim2.new(1,0,0.2,0)
-textLabel.Position = UDim2.new(0,0,0.3,0)
-textLabel.BackgroundTransparency = 1
-textLabel.Font = Enum.Font.GothamBold
-textLabel.TextColor3 = Color3.new(0.8,0.8,0.8)
-textLabel.Text = "Welcome to Flashlight Hub"
-textLabel.TextSize = 28
-textLabel.Parent = landingFrame
-print("TextLabel created")  -- Debug
-
-local subLabel = Instance.new("TextLabel")
-subLabel.Size = UDim2.new(1,0,0.1,0)
-subLabel.Position = UDim2.new(0,0,0.45,0)
-subLabel.BackgroundTransparency = 1
-subLabel.Font = Enum.Font.Gotham
-subLabel.TextSize = 14
-subLabel.Text = "Advanced tools • AutoFarm • ESP • Anti-AFK • made by jjs_dev"
-subLabel.TextColor3 = Color3.fromRGB(160,180,200)
-subLabel.TextXAlignment = Enum.TextXAlignment.Center
-subLabel.Parent = landingFrame
-
-local loadingRing = Instance.new("ImageLabel")
-loadingRing.Size = UDim2.new(0,128,0,128)  -- Smaller for hub
-loadingRing.BackgroundTransparency = 1
-loadingRing.Image = "rbxassetid://4965945816"
-loadingRing.AnchorPoint = Vector2.new(0.5,0.5)
-loadingRing.Position = UDim2.new(0.5,0,0.6,0)
-loadingRing.Parent = landingFrame
-print("LoadingRing created")  -- Debug
-
-local tweenInfo = TweenInfo.new(4, Enum.EasingStyle.Linear, Enum.EasingDirection.In, -1)
-local tween = TweenService:Create(loadingRing, tweenInfo, {Rotation = 360})
-tween:Play()
-print("Ring tween playing")  -- Debug
-
-local OpenBtn = Instance.new("TextButton")
-OpenBtn.Size = UDim2.new(0.3,0,0.1,0)
-OpenBtn.Position = UDim2.new(0.35,0,0.75,0)
-OpenBtn.BackgroundColor3 = Color3.fromRGB(20,120,255)
-OpenBtn.Font = Enum.Font.GothamBold
-OpenBtn.TextSize = 16
-OpenBtn.Text = "Open Hub"
-OpenBtn.BorderSizePixel = 0
-local OpenCorner = Instance.new("UICorner", OpenBtn)
-OpenCorner.CornerRadius = UDim.new(0,8)
-OpenBtn.Parent = landingFrame
+-- No landing page - start directly on AutoFarm
+PageAuto.Visible = true
+print("AutoFarm page set visible - no loading screen")  -- Debug
 
 local function showPage(p)
 	print("Showing page: " .. p.Name)  -- Debug
@@ -225,18 +169,7 @@ local function showPage(p)
 	end
 end
 
-local function animateLandingAndOpen()
-	print("Starting landing animation...")  -- Debug
-	wait(2)  -- Simulate load time
-	tween:Cancel()
-	loadingRing.Visible = false
-	landingFrame:TweenPosition(UDim2.new(0,0,1,0), Enum.EasingDirection.InOut, Enum.EasingStyle.Sine, 2, true)
-	wait(2)
-	showPage(PageAuto)
-	print("Landing done, showing AutoFarm")  -- Debug
-end
-
-OpenBtn.MouseButton1Click:Connect(animateLandingAndOpen)
+print("Full UI loaded - check for dark frame with tabs/stats")  -- Debug
 
 TabAuto.MouseButton1Click:Connect(function()
 	showPage(PageAuto)
@@ -738,7 +671,7 @@ LocalPlayer.CharacterAdded:Connect(function(c)
 	end
 end)
 
-notify("Flashlight Hub ready • Press bottom button to hide • Check F9 for debug prints")
+notify("Flashlight Hub ready - No loading screen, straight to AutoFarm • Check F9 for debug prints")
 
 UserInputService.InputBegan:Connect(function(input, processed)
 	if processed then return end

@@ -150,53 +150,63 @@ local function makePage(n)
 	return f
 end
 
-local PageLanding = makePage("Landing")
 local PageAuto = makePage("AutoFarm")
 local PageESP = makePage("ESP")
 local PageAFK = makePage("AntiAFK")
 local PageSteal = makePage("AntiSteal")
 local PageSettings = makePage("Settings")
+
+-- Adapted landing screen from provided loading script
+local PageLanding = makePage("Landing")
 PageLanding.Visible = true
 print("Landing page set visible")  -- Debug
 
-local landingBox = Instance.new("Frame", PageLanding)
-landingBox.Size = UDim2.new(0.76,0,0.78,0)
-landingBox.Position = UDim2.new(0.12,0,0.08,0)
-landingBox.BackgroundColor3 = Color3.fromRGB(18,20,22)
-landingBox.BorderSizePixel = 0
-local landingCorner = Instance.new("UICorner", landingBox)
-landingCorner.CornerRadius = UDim.new(0,10)
+local landingFrame = Instance.new("Frame")
+landingFrame.Parent = PageLanding
+landingFrame.Size = UDim2.new(1,0,1,0)
+landingFrame.BackgroundTransparency = 0
+landingFrame.BackgroundColor3 = Color3.fromRGB(0,20,40)
+print("Landing frame created")  -- Debug
 
-local Title = Instance.new("TextLabel", landingBox)
-Title.Size = UDim2.new(1,0,0,90)
-Title.Position = UDim2.new(0,0,0,8)
-Title.BackgroundTransparency = 1
-Title.Font = Enum.Font.GothamBold
-Title.TextSize = 32
-Title.Text = "Welcome to Flashlight Hub"
-Title.TextColor3 = Color3.fromRGB(190,220,255)
-Title.TextXAlignment = Enum.TextXAlignment.Left
+local textLabel = Instance.new("TextLabel")
+textLabel.Size = UDim2.new(1,0,0.2,0)
+textLabel.Position = UDim2.new(0,0,0.3,0)
+textLabel.BackgroundTransparency = 1
+textLabel.Font = Enum.Font.GothamBold
+textLabel.TextColor3 = Color3.new(0.8,0.8,0.8)
+textLabel.Text = "Welcome to Flashlight Hub"
+textLabel.TextSize = 28
+textLabel.Parent = landingFrame
+print("TextLabel created")  -- Debug
 
-local Sub = Instance.new("TextLabel", landingBox)
-Sub.Size = UDim2.new(1,0,0,36)
-Sub.Position = UDim2.new(0,0,0,98)  -- Adjusted to avoid title overlap
-Sub.BackgroundTransparency = 1
-Sub.Font = Enum.Font.Gotham
-Sub.TextSize = 14
-Sub.Text = "Advanced tools • AutoFarm • ESP • Anti-AFK • made by jjs_dev"
-Sub.TextColor3 = Color3.fromRGB(160,180,200)
-Sub.TextXAlignment = Enum.TextXAlignment.Left
+local subLabel = Instance.new("TextLabel")
+subLabel.Size = UDim2.new(1,0,0.1,0)
+subLabel.Position = UDim2.new(0,0,0.45,0)
+subLabel.BackgroundTransparency = 1
+subLabel.Font = Enum.Font.Gotham
+subLabel.TextSize = 14
+subLabel.Text = "Advanced tools • AutoFarm • ESP • Anti-AFK • made by jjs_dev"
+subLabel.TextColor3 = Color3.fromRGB(160,180,200)
+subLabel.TextXAlignment = Enum.TextXAlignment.Center
+subLabel.Parent = landingFrame
 
-local Art = Instance.new("ImageLabel", landingBox)
-Art.Size = UDim2.new(0.36,0,0.64,0)
-Art.AnchorPoint = Vector2.new(1,0)
-Art.Position = UDim2.new(1,-18,0,18)
-Art.BackgroundTransparency = 1
-Art.Image = "rbxassetid://11169455357"  -- If this ID 404s, it might log; ignore for now
+local loadingRing = Instance.new("ImageLabel")
+loadingRing.Size = UDim2.new(0,128,0,128)  -- Smaller for hub
+loadingRing.BackgroundTransparency = 1
+loadingRing.Image = "rbxassetid://4965945816"
+loadingRing.AnchorPoint = Vector2.new(0.5,0.5)
+loadingRing.Position = UDim2.new(0.5,0,0.6,0)
+loadingRing.Parent = landingFrame
+print("LoadingRing created")  -- Debug
 
-local OpenBtn = Instance.new("TextButton", landingBox)
-OpenBtn.Size = UDim2.new(0,180,0,44)
-OpenBtn.Position = UDim2.new(0.02,0,0.75,0)
+local tweenInfo = TweenInfo.new(4, Enum.EasingStyle.Linear, Enum.EasingDirection.In, -1)
+local tween = TweenService:Create(loadingRing, tweenInfo, {Rotation = 360})
+tween:Play()
+print("Ring tween playing")  -- Debug
+
+local OpenBtn = Instance.new("TextButton")
+OpenBtn.Size = UDim2.new(0.3,0,0.1,0)
+OpenBtn.Position = UDim2.new(0.35,0,0.75,0)
 OpenBtn.BackgroundColor3 = Color3.fromRGB(20,120,255)
 OpenBtn.Font = Enum.Font.GothamBold
 OpenBtn.TextSize = 16
@@ -204,57 +214,8 @@ OpenBtn.Text = "Open Hub"
 OpenBtn.BorderSizePixel = 0
 local OpenCorner = Instance.new("UICorner", OpenBtn)
 OpenCorner.CornerRadius = UDim.new(0,8)
+OpenBtn.Parent = landingFrame
 
--- Splash (commented for debug; uncomment to re-enable)
---[[
-local Splash = Instance.new("Frame", Root)
-Splash.Size = UDim2.new(1,0,1,0)
-Splash.BackgroundTransparency = 1
-Splash.ZIndex = 5
-Splash.Visible = false  -- Start hidden
-
-local SplashCard = Instance.new("Frame", Splash)
-SplashCard.Size = UDim2.new(0.6,0,0.25,0)
-SplashCard.Position = UDim2.new(0.2,0,0.36,0)
-SplashCard.BackgroundColor3 = Color3.fromRGB(10,12,16)
-SplashCard.BorderSizePixel = 0
-local SplashCorner = Instance.new("UICorner", SplashCard)
-SplashCorner.CornerRadius = UDim.new(0,8)
-
-local SplashLabel = Instance.new("TextLabel", SplashCard)
-SplashLabel.Size = UDim2.new(1,0,1,0)
-SplashLabel.BackgroundTransparency = 1
-SplashLabel.Font = Enum.Font.GothamBold
-SplashLabel.TextSize = 26
-SplashLabel.Text = "Landing — made by jjs_dev"
-SplashLabel.TextColor3 = Color3.fromRGB(180,220,255)
-SplashLabel.TextWrapped = true
-SplashLabel.TextXAlignment = Enum.TextXAlignment.Center
-SplashLabel.TextYAlignment = Enum.TextYAlignment.Center
-
-local function animateSplashAndOpen()
-	print("Starting splash anim...")  -- Debug
-	Splash.Visible = true
-	local t1 = TweenService:Create(SplashCard, TweenInfo.new(0.6, Enum.EasingStyle.Quad), {Size = UDim2.new(0.72,0,0.28,0)})
-	t1:Play()
-	t1.Completed:Wait()
-	wait(0.5)
-	local t2 = TweenService:Create(SplashCard, TweenInfo.new(0.6, Enum.EasingStyle.Quad), {Position = UDim2.new(0.14,0,0.18,0)})
-	t2:Play()
-	t2.Completed:Wait()
-	wait(0.6)
-	local t3 = TweenService:Create(SplashCard, TweenInfo.new(0.6, Enum.EasingStyle.Quad), {Position = UDim2.new(-1,0,0.18,0)})
-	t3:Play()
-	t3.Completed:Wait()
-	Splash.Visible = false
-	showPage(PageAuto)
-	print("Splash done, showing AutoFarm")  -- Debug
-end
-
-OpenBtn.MouseButton1Click:Connect(animateSplashAndOpen)
---]]
-
--- Skip splash for now: Directly show AutoFarm on load
 local function showPage(p)
 	print("Showing page: " .. p.Name)  -- Debug
 	for _,v in pairs(Pages:GetChildren()) do
@@ -263,8 +224,19 @@ local function showPage(p)
 		end
 	end
 end
-showPage(PageAuto)  -- Start on AutoFarm directly
-print("Full UI loaded - check for dark frame with tabs/stats")  -- Debug
+
+local function animateLandingAndOpen()
+	print("Starting landing animation...")  -- Debug
+	wait(2)  -- Simulate load time
+	tween:Cancel()
+	loadingRing.Visible = false
+	landingFrame:TweenPosition(UDim2.new(0,0,1,0), Enum.EasingDirection.InOut, Enum.EasingStyle.Sine, 2, true)
+	wait(2)
+	showPage(PageAuto)
+	print("Landing done, showing AutoFarm")  -- Debug
+end
+
+OpenBtn.MouseButton1Click:Connect(animateLandingAndOpen)
 
 TabAuto.MouseButton1Click:Connect(function()
 	showPage(PageAuto)
@@ -358,7 +330,7 @@ ESPToggle.Position = UDim2.new(0,12,0,44)
 ESPToggle.BackgroundColor3 = Color3.fromRGB(24,26,30)
 ESPToggle.Font = Enum.Font.GothamSemibold
 ESPToggle.TextSize = 14
-ESPToggle.Text = "Enable Player ESP"  -- Start as "enable" since off
+ESPToggle.Text = "Enable Player ESP"
 ESPToggle.BorderSizePixel = 0
 local ESPCorner = Instance.new("UICorner", ESPToggle)
 ESPCorner.CornerRadius = UDim.new(0,8)
@@ -536,7 +508,7 @@ StealToggle.MouseButton1Click:Connect(function()
 	end
 end)
 
-local espPlayersOn = false  -- Start off to avoid early errors
+local espPlayersOn = false
 local espCoinsOn = false
 local function makeBillboard(text, parent, size)
 	local b = Instance.new("BillboardGui")

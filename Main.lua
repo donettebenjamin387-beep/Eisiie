@@ -1,766 +1,543 @@
-task.spawn(function()
-    --// wait until everything we need is ready
-    local Players = game:GetService("Players")
-    local TweenService = game:GetService("TweenService")
-    local RunService = game:GetService("RunService")
-    local UserInputService = game:GetService("UserInputService")
-    local CoreGui = game:GetService("CoreGui")
-    local LocalPlayer = Players.LocalPlayer
-    local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")   -- <-- important
+-- Flashlight Hub v1.0
+-- Revamped by jjs_dev
+-- A custom, sleek Roblox script hub with essential features from YARHM.
+-- Features: Universal (Fly, ESP, Notifications), MM2-specific (Auto-shoot, Kill Aura, etc.)
+-- Custom GUI: Modern dark theme, draggable menu, toggles/buttons, clean layout.
 
-    -------------------------------------------------
-    --// destroy any old instance
-    for _,v in pairs(PlayerGui:GetChildren()) do
-        if v.Name == "FlashlightHubUI" then
-            v:Destroy()
-        end
-    end
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local StarterGui = game:GetService("StarterGui")
+local CoreGui = game:GetService("CoreGui")
 
-    -------------------------------------------------
-    --// build the GUI
-    local Screen = Instance.new("ScreenGui")
-    Screen.Name = "FlashlightHubUI"
-    Screen.ResetOnSpawn = false
-    Screen.IgnoreGuiInset = true
-    Screen.Parent = PlayerGui
+local LocalPlayer = Players.LocalPlayer
+local Mouse = LocalPlayer:GetMouse()
 
-    local Root = Instance.new("Frame", Screen)
-    Root.Name = "Root"
-    Root.AnchorPoint = Vector2.new(0.5,0.5)
-    Root.Position = UDim2.new(0.5,0.5)
-    Root.Size = UDim2.fromOffset(860,540)
-    Root.BackgroundColor3 = Color3.fromRGB(14,16,18)
-    Root.BorderSizePixel = 0
-    local RootCorner = Instance.new("UICorner", Root)
-    RootCorner.CornerRadius = UDim.new(0,12)
+-- Wait for game load
+if not game:IsLoaded() then
+    StarterGui:SetCore("SendNotification", {
+        Title = "Flashlight Hub",
+        Text = "Waiting for game to load...",
+        Duration = 3
+    })
+    game.Loaded:Wait()
+end
 
-    local Header = Instance.new("Frame", Root)
-    Header.Size = UDim2.new(1,0,0,86)
-    Header.BackgroundTransparency = 1
+-- Notification function
+local function notify(title, text, duration)
+    StarterGui:SetCore("SendNotification", {
+        Title = title or "Flashlight Hub",
+        Text = text,
+        Duration = duration or 3
+    })
+end
 
-    local Brand = Instance.new("TextLabel", Header)
-    Brand.Size = UDim2.new(0.46,0,1,0)
-    Brand.Position = UDim2.new(0,20,0,0)
-    Brand.BackgroundTransparency = 1
-    Brand.Font = Enum.Font.GothamBold
-    Brand.TextSize = 26
-    Brand.Text = "Flashlight Hub"
-    Brand.TextColor3 = Color3.fromRGB(185,215,255)
-    Brand.TextXAlignment = Enum.TextXAlignment.Left
+-- Create ScreenGui
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "FlashlightHub"
+ScreenGui.Parent = CoreGui
+ScreenGui.ResetOnSpawn = false
+ScreenGui.IgnoreGuiInset = true
 
-    local Credit = Instance.new("TextLabel", Header)
-    Credit.Size = UDim2.new(0.46,0,1,0)
-    Credit.Position = UDim2.new(0,20,0,38)
-    Credit.BackgroundTransparency = 1
-    Credit.Font = Enum.Font.Gotham
-    Credit.TextSize = 13
-    Credit.Text = "made by jjs_dev"
-    Credit.TextColor3 = Color3.fromRGB(165,185,205)
-    Credit.TextXAlignment = Enum.TextXAlignment.Left
+-- Main Menu Frame
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+MainFrame.BorderSizePixel = 0
+MainFrame.Position = UDim2.new(0.5, -200, 0.5, -150)
+MainFrame.Size = UDim2.new(0, 400, 0, 300)
+MainFrame.Active = true
+MainFrame.Draggable = true
 
-    local TabHolder = Instance.new("Frame", Header)
-    TabHolder.Size = UDim2.new(0.5,0,0.55,0)
-    TabHolder.Position = UDim2.new(0.52,0,0.22,0)
-    TabHolder.BackgroundTransparency = 1
-    local TabLayout = Instance.new("UIListLayout", TabHolder)
-    TabLayout.FillDirection = Enum.FillDirection.Horizontal
-    TabLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-    TabLayout.Padding = UDim.new(0,12)
+-- Corner rounding
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 8)
+UICorner.Parent = MainFrame
 
-    local function makeTab(tn)
-        local b = Instance.new("TextButton", TabHolder)
-        b.Size = UDim2.new(0,160,1,0)
-        b.BackgroundColor3 = Color3.fromRGB(24,27,32)
-        b.BorderSizePixel = 0
-        local c = Instance.new("UICorner", b)
-        c.CornerRadius = UDim.new(0,8)
-        b.Font = Enum.Font.GothamSemibold
-        b.TextSize = 15
-        b.Text = tn
-        b.TextColor3 = Color3.fromRGB(220,230,240)
-        return b
-    end
+-- Stroke for border
+local UIStroke = Instance.new("UIStroke")
+UIStroke.Color = Color3.fromRGB(255, 200, 100)  -- Warm flashlight accent
+UIStroke.Thickness = 2
+UIStroke.Parent = MainFrame
 
-    local TabAuto = makeTab("AutoFarm")
-    local TabESP = makeTab("ESP")
-    local TabAFK = makeTab("Anti-AFK")
-    local TabSteal = makeTab("Anti-Steal")
-    local TabSettings = makeTab("Settings")
+-- Title Bar
+local TitleBar = Instance.new("Frame")
+TitleBar.Name = "TitleBar"
+TitleBar.Parent = MainFrame
+TitleBar.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+TitleBar.BorderSizePixel = 0
+TitleBar.Size = UDim2.new(1, 0, 0, 40)
 
-    local Content = Instance.new("Frame", Root)
-    Content.Position = UDim2.new(0,18,0,100)
-    Content.Size = UDim2.new(1,-36,1,-118)
-    Content.BackgroundColor3 = Color3.fromRGB(10,12,14)
-    Content.BorderSizePixel = 0
-    local ContentCorner = Instance.new("UICorner", Content)
-    ContentCorner.CornerRadius = UDim.new(0,10)
+local TitleCorner = Instance.new("UICorner")
+TitleCorner.CornerRadius = UDim.new(0, 8)
+TitleCorner.Parent = TitleBar
 
-    local LeftPanel = Instance.new("Frame", Content)
-    LeftPanel.Size = UDim2.new(0,280,1,0)
-    LeftPanel.Position = UDim2.new(0,0,0,0)
-    LeftPanel.BackgroundTransparency = 1
+local TitleLabel = Instance.new("TextLabel")
+TitleLabel.Name = "Title"
+TitleLabel.Parent = TitleBar
+TitleLabel.BackgroundTransparency = 1
+TitleLabel.Size = UDim2.new(1, -40, 1, 0)
+TitleLabel.Font = Enum.Font.GothamBold
+TitleLabel.Text = "Flashlight Hub v1.0"
+TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+TitleLabel.TextSize = 16
+TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
 
-    local LeftCard = Instance.new("Frame", LeftPanel)
-    LeftCard.Size = UDim2.new(1,0,1,0)
-    LeftCard.BackgroundColor3 = Color3.fromRGB(16,18,20)
-    LeftCard.BorderSizePixel = 0
-    local LeftCorner = Instance.new("UICorner", LeftCard)
-    LeftCorner.CornerRadius = UDim.new(0,10)
+-- Close Button
+local CloseButton = Instance.new("TextButton")
+CloseButton.Name = "Close"
+CloseButton.Parent = TitleBar
+CloseButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+CloseButton.BorderSizePixel = 0
+CloseButton.Position = UDim2.new(1, -30, 0, 5)
+CloseButton.Size = UDim2.new(0, 25, 0, 25)
+CloseButton.Font = Enum.Font.Gotham
+CloseButton.Text = "X"
+CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseButton.TextSize = 14
 
-    local StatsTitle = Instance.new("TextLabel", LeftCard)
-    StatsTitle.Size = UDim2.new(1,0,0,36)
-    StatsTitle.Position = UDim2.new(0,12,0,12)
-    StatsTitle.BackgroundTransparency = 1
-    StatsTitle.Font = Enum.Font.GothamBold
-    StatsTitle.TextSize = 18
-    StatsTitle.Text = "Live Stats"
-    StatsTitle.TextColor3 = Color3.fromRGB(180,215,255)
+local CloseCorner = Instance.new("UICorner")
+CloseCorner.CornerRadius = UDim.new(0, 4)
+CloseCorner.Parent = CloseButton
 
-    local CollectedLbl = Instance.new("TextLabel", LeftCard)
-    CollectedLbl.Size = UDim2.new(1,-24,0,24)
-    CollectedLbl.Position = UDim2.new(0,12,0,56)
-    CollectedLbl.BackgroundTransparency = 1
-    CollectedLbl.Font = Enum.Font.Gotham
-    CollectedLbl.TextSize = 14
-    CollectedLbl.Text = "Collected: 0"
-    CollectedLbl.TextColor3 = Color3.fromRGB(200,220,240)
+-- Content ScrollingFrame
+local ContentFrame = Instance.new("ScrollingFrame")
+ContentFrame.Name = "Content"
+ContentFrame.Parent = MainFrame
+ContentFrame.BackgroundTransparency = 1
+ContentFrame.BorderSizePixel = 0
+ContentFrame.Position = UDim2.new(0, 0, 0, 40)
+ContentFrame.Size = UDim2.new(1, 0, 1, -40)
+ContentFrame.ScrollBarThickness = 6
+ContentFrame.ScrollBarImageColor3 = Color3.fromRGB(255, 200, 100)
 
-    local TimeLbl = CollectedLbl:Clone()
-    TimeLbl.Position = UDim2.new(0,12,0,82)
-    TimeLbl.Parent = LeftCard
-    TimeLbl.Text = "Time Active: 0s"
+local ContentLayout = Instance.new("UIListLayout")
+ContentLayout.Parent = ContentFrame
+ContentLayout.Padding = UDim.new(0, 5)
+ContentLayout.SortOrder = Enum.SortOrder.LayoutOrder
+ContentLayout.FillDirection = Enum.FillDirection.Vertical
+ContentLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 
-    local RateLbl = CollectedLbl:Clone()
-    RateLbl.Position = UDim2.new(0,12,0,108)
-    RateLbl.Parent = LeftCard
-    RateLbl.Text = "Coins/Hour: 0"
+-- Universal Section
+local UniversalSection = Instance.new("Frame")
+UniversalSection.Name = "Universal"
+UniversalSection.Parent = ContentFrame
+UniversalSection.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+UniversalSection.BorderSizePixel = 0
+UniversalSection.Size = UDim2.new(1, -10, 0, 120)
 
-    local RightPanel = Instance.new("Frame", Content)
-    RightPanel.Size = UDim2.new(1,-300,1,0)
-    RightPanel.Position = UDim2.new(0,300,0,0)
-    RightPanel.BackgroundTransparency = 1
+local UniCorner = Instance.new("UICorner")
+UniCorner.CornerRadius = UDim.new(0, 6)
+UniCorner.Parent = UniversalSection
 
-    local Pages = Instance.new("Folder", RightPanel)
-    Pages.Name = "Pages"
+local UniTitle = Instance.new("TextLabel")
+UniTitle.Parent = UniversalSection
+UniTitle.BackgroundTransparency = 1
+UniTitle.Size = UDim2.new(1, 0, 0, 30)
+UniTitle.Font = Enum.Font.GothamSemibold
+UniTitle.Text = "Universal Features"
+UniTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+UniTitle.TextSize = 14
+UniTitle.TextXAlignment = Enum.TextXAlignment.Left
+UniTitle.Position = UDim2.new(0, 10, 0, 5)
 
-    local function makePage(n)
-        local f = Instance.new("Frame", Pages)
-        f.Name = n
-        f.Size = UDim2.new(1,0,1,0)
-        f.BackgroundTransparency = 1
-        f.Visible = false
-        return f
-    end
+-- Fly Toggle
+local FlyToggle = Instance.new("TextButton")
+FlyToggle.Name = "Fly"
+FlyToggle.Parent = UniversalSection
+FlyToggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+FlyToggle.BorderSizePixel = 0
+FlyToggle.Position = UDim2.new(0, 10, 0, 40)
+FlyToggle.Size = UDim2.new(1, -20, 0, 30)
+FlyToggle.Font = Enum.Font.Gotham
+FlyToggle.Text = "Fly: OFF"
+FlyToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+FlyToggle.TextSize = 12
 
-    local PageLanding = makePage("Landing")
-    local PageAuto = makePage("AutoFarm")
-    local PageESP = makePage("ESP")
-    local PageAFK = makePage("AntiAFK")
-    local PageSteal = makePage("AntiSteal")
-    local PageSettings = makePage("Settings")
-    PageLanding.Visible = true
+local FlyCorner = Instance.new("UICorner")
+FlyCorner.CornerRadius = UDim.new(0, 4)
+FlyCorner.Parent = FlyToggle
 
-    local landingBox = Instance.new("Frame", PageLanding)
-    landingBox.Size = UDim2.new(0.76,0,0.78,0)
-    landingBox.Position = UDim2.new(0.12,0,0.08,0)
-    landingBox.BackgroundColor3 = Color3.fromRGB(18,20,22)
-    landingBox.BorderSizePixel = 0
-    local landingCorner = Instance.new("UICorner", landingBox)
-    landingCorner.CornerRadius = UDim.new(0,10)
+-- ESP Toggle
+local ESPToggle = Instance.new("TextButton")
+ESPToggle.Name = "ESP"
+ESPToggle.Parent = UniversalSection
+ESPToggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+ESPToggle.BorderSizePixel = 0
+ESPToggle.Position = UDim2.new(0, 10, 0, 75)
+ESPToggle.Size = UDim2.new(1, -20, 0, 30)
+ESPToggle.Font = Enum.Font.Gotham
+ESPToggle.Text = "ESP: OFF"
+ESPToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+ESPToggle.TextSize = 12
 
-    local Title = Instance.new("TextLabel", landingBox)
-    Title.Size = UDim2.new(1,0,0,90)
-    Title.Position = UDim2.new(0,0,0,8)
-    Title.BackgroundTransparency = 1
-    Title.Font = Enum.Font.GothamBold
-    Title.TextSize = 32
-    Title.Text = "Welcome to Flashlight Hub"
-    Title.TextColor3 = Color3.fromRGB(190,220,255)
-    Title.TextXAlignment = Enum.TextXAlignment.Left
+local ESPCorner = Instance.new("UICorner")
+ESPCorner.CornerRadius = UDim.new(0, 4)
+ESPCorner.Parent = ESPToggle
 
-    local Sub = Instance.new("TextLabel", landingBox)
-    Sub.Size = UDim2.new(1,0,0,36)
-    Sub.Position = UDim2.new(0,0,0,70)
-    Sub.BackgroundTransparency = 1
-    Sub.Font = Enum.Font.Gotham
-    Sub.TextSize = 14
-    Sub.Text = "Advanced tools • AutoFarm • ESP • Anti-AFK • made by jjs_dev"
-    Sub.TextColor3 = Color3.fromRGB(160,180,200)
-    Sub.TextXAlignment = Enum.TextXAlignment.Left
+-- MM2 Section
+local MM2Section = Instance.new("Frame")
+MM2Section.Name = "MM2"
+MM2Section.Parent = ContentFrame
+MM2Section.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+MM2Section.BorderSizePixel = 0
+MM2Section.Size = UDim2.new(1, -10, 0, 200)
 
-    local Art = Instance.new("ImageLabel", landingBox)
-    Art.Size = UDim2.new(0.36,0,0.64,0)
-    Art.AnchorPoint = Vector2.new(1,0)
-    Art.Position = UDim2.new(1,-18,0,18)
-    Art.BackgroundTransparency = 1
-    Art.Image = "rbxassetid://11169455357"
+local MM2Corner = Instance.new("UICorner")
+MM2Corner.CornerRadius = UDim.new(0, 6)
+MM2Corner.Parent = MM2Section
 
-    local OpenBtn = Instance.new("TextButton", landingBox)
-    OpenBtn.Size = UDim2.new(0,180,0,44)
-    OpenBtn.Position = UDim2.new(0.02,0,0.75,0)
-    OpenBtn.BackgroundColor3 = Color3.fromRGB(20,120,255)
-    OpenBtn.Font = Enum.Font.GothamBold
-    OpenBtn.TextSize = 16
-    OpenBtn.Text = "Open Hub"
-    OpenBtn.BorderSizePixel = 0
-    local OpenCorner = Instance.new("UICorner", OpenBtn)
-    OpenCorner.CornerRadius = UDim.new(0,8)
+local MM2Title = Instance.new("TextLabel")
+MM2Title.Parent = MM2Section
+MM2Title.BackgroundTransparency = 1
+MM2Title.Size = UDim2.new(1, 0, 0, 30)
+MM2Title.Font = Enum.Font.GothamSemibold
+MM2Title.Text = "Murder Mystery 2 Features"
+MM2Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+MM2Title.TextSize = 14
+MM2Title.TextXAlignment = Enum.TextXAlignment.Left
+MM2Title.Position = UDim2.new(0, 10, 0, 5)
 
-    local Splash = Instance.new("Frame", Root)
-    Splash.Size = UDim2.new(1,0,1,0)
-    Splash.BackgroundTransparency = 1
-    Splash.ZIndex = 5
+-- Auto Shoot Button
+local AutoShootButton = Instance.new("TextButton")
+AutoShootButton.Name = "AutoShoot"
+AutoShootButton.Parent = MM2Section
+AutoShootButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+AutoShootButton.BorderSizePixel = 0
+AutoShootButton.Position = UDim2.new(0, 10, 0, 40)
+AutoShootButton.Size = UDim2.new(1, -20, 0, 30)
+AutoShootButton.Font = Enum.Font.Gotham
+AutoShootButton.Text = "Auto Shoot Murderer"
+AutoShootButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+AutoShootButton.TextSize = 12
 
-    local SplashCard = Instance.new("Frame", Splash)
-    SplashCard.Size = UDim2.new(0.6,0,0.25,0)
-    SplashCard.Position = UDim2.new(0.2,0,0.36,0)
-    SplashCard.BackgroundColor3 = Color3.fromRGB(10,12,16)
-    SplashCard.BorderSizePixel = 0
-    local SplashCorner = Instance.new("UICorner", SplashCard)
-    SplashCorner.CornerRadius = UDim.new(0,8)
+local AutoShootCorner = Instance.new("UICorner")
+AutoShootCorner.CornerRadius = UDim.new(0, 4)
+AutoShootCorner.Parent = AutoShootButton
 
-    local SplashLabel = Instance.new("TextLabel", SplashCard)
-    SplashLabel.Size = UDim2.new(1,0,1,0)
-    SplashLabel.BackgroundTransparency = 1
-    SplashLabel.Font = Enum.Font.GothamBold
-    SplashLabel.TextSize = 26
-    SplashLabel.Text = "Landing — made by jjs_dev"
-    SplashLabel.TextColor3 = Color3.fromRGB(180,220,255)
-    SplashLabel.TextWrapped = true
-    SplashLabel.TextXAlignment = Enum.TextXAlignment.Center
-    SplashLabel.TextYAlignment = Enum.TextYAlignment.Center
+-- Kill Aura Toggle
+local KillAuraToggle = Instance.new("TextButton")
+KillAuraToggle.Name = "KillAura"
+KillAuraToggle.Parent = MM2Section
+KillAuraToggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+KillAuraToggle.BorderSizePixel = 0
+KillAuraToggle.Position = UDim2.new(0, 10, 0, 75)
+KillAuraToggle.Size = UDim2.new(1, -20, 0, 30)
+KillAuraToggle.Font = Enum.Font.Gotham
+KillAuraToggle.Text = "Kill Aura: OFF"
+KillAuraToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+KillAuraToggle.TextSize = 12
 
-    local function showPage(p)
-        for _,v in pairs(Pages:GetChildren()) do
-            if v:IsA("Frame") then
-                v.Visible = (v == p)
+local KillAuraCorner = Instance.new("UICorner")
+KillAuraCorner.CornerRadius = UDim.new(0, 4)
+KillAuraCorner.Parent = KillAuraToggle
+
+-- Shoot Murderer Button
+local ShootMurdererButton = Instance.new("TextButton")
+ShootMurdererButton.Name = "ShootMurderer"
+ShootMurdererButton.Parent = MM2Section
+ShootMurdererButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+ShootMurdererButton.BorderSizePixel = 0
+ShootMurdererButton.Position = UDim2.new(0, 10, 0, 110)
+ShootMurdererButton.Size = UDim2.new(1, -20, 0, 30)
+ShootMurdererButton.Font = Enum.Font.Gotham
+ShootMurdererButton.Text = "Shoot Murderer"
+ShootMurdererButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ShootMurdererButton.TextSize = 12
+
+local ShootMurdererCorner = Instance.new("UICorner")
+ShootMurdererCorner.CornerRadius = UDim.new(0, 4)
+ShootMurdererCorner.Parent = ShootMurdererButton
+
+-- Fling Murderer Button
+local FlingMurdererButton = Instance.new("TextButton")
+FlingMurdererButton.Name = "FlingMurderer"
+FlingMurdererButton.Parent = MM2Section
+FlingMurdererButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+FlingMurdererButton.BorderSizePixel = 0
+FlingMurdererButton.Position = UDim2.new(0, 10, 0, 145)
+FlingMurdererButton.Size = UDim2.new(1, -20, 0, 30)
+FlingMurdererButton.Font = Enum.Font.Gotham
+FlingMurdererButton.Text = "Fling Murderer"
+FlingMurdererButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+FlingMurdererButton.TextSize = 12
+
+local FlingMurdererCorner = Instance.new("UICorner")
+FlingMurdererCorner.CornerRadius = UDim.new(0, 4)
+FlingMurdererCorner.Parent = FlingMurdererButton
+
+-- Credits Label
+local CreditsLabel = Instance.new("TextLabel")
+CreditsLabel.Parent = MainFrame
+CreditsLabel.BackgroundTransparency = 1
+CreditsLabel.Position = UDim2.new(0, 10, 1, -25)
+CreditsLabel.Size = UDim2.new(1, -20, 0, 20)
+CreditsLabel.Font = Enum.Font.Gotham
+CreditsLabel.Text = "Revamped by jjs_dev | Illuminate Your Gameplay"
+CreditsLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+CreditsLabel.TextSize = 10
+CreditsLabel.TextXAlignment = Enum.TextXAlignment.Center
+
+-- Variables for features
+local flying = false
+local espEnabled = false
+local killAuraEnabled = false
+local autoShooting = false
+local bodyVelocity = nil
+local bodyAngularVelocity = nil
+
+-- Fly Function (from original features)
+local function toggleFly()
+    flying = not flying
+    FlyToggle.Text = "Fly: " .. (flying and "ON" or "OFF")
+    FlyToggle.BackgroundColor3 = flying and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(50, 50, 50)
+    
+    if flying then
+        local character = LocalPlayer.Character
+        if character then
+            local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+            if humanoidRootPart then
+                bodyVelocity = Instance.new("BodyVelocity")
+                bodyVelocity.MaxForce = Vector3.new(4000, 4000, 4000)
+                bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+                bodyVelocity.Parent = humanoidRootPart
+                
+                bodyAngularVelocity = Instance.new("BodyAngularVelocity")
+                bodyAngularVelocity.MaxTorque = Vector3.new(4000, 4000, 4000)
+                bodyAngularVelocity.AngularVelocity = Vector3.new(0, 0, 0)
+                bodyAngularVelocity.Parent = humanoidRootPart
+                
+                local speed = 50
+                local keys = {A = false, D = false, W = false, S = false}
+                
+                UserInputService.InputBegan:Connect(function(input)
+                    if input.KeyCode == Enum.KeyCode.W then keys.W = true end
+                    if input.KeyCode == Enum.KeyCode.S then keys.S = true end
+                    if input.KeyCode == Enum.KeyCode.A then keys.A = true end
+                    if input.KeyCode == Enum.KeyCode.D then keys.D = true end
+                end)
+                
+                UserInputService.InputEnded:Connect(function(input)
+                    if input.KeyCode == Enum.KeyCode.W then keys.W = false end
+                    if input.KeyCode == Enum.KeyCode.S then keys.S = false end
+                    if input.KeyCode == Enum.KeyCode.A then keys.A = false end
+                    if input.KeyCode == Enum.KeyCode.D then keys.D = false end
+                end)
+                
+                RunService.Heartbeat:Connect(function()
+                    if not flying then return end
+                    local character = LocalPlayer.Character
+                    if not character or not character:FindFirstChild("HumanoidRootPart") then return end
+                    local humanoidRootPart = character.HumanoidRootPart
+                    local camera = workspace.CurrentCamera
+                    local moveVector = Vector3.new(0, 0, 0)
+                    
+                    if keys.W then moveVector = moveVector + camera.CFrame.LookVector end
+                    if keys.S then moveVector = moveVector - camera.CFrame.LookVector end
+                    if keys.A then moveVector = moveVector - camera.CFrame.RightVector end
+                    if keys.D then moveVector = moveVector + camera.CFrame.RightVector end
+                    
+                    if UserInputService:IsKeyDown(Enum.KeyCode.Space) then moveVector = moveVector + Vector3.new(0, 1, 0) end
+                    if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then moveVector = moveVector - Vector3.new(0, 1, 0) end
+                    
+                    moveVector = moveVector.Unit * speed
+                    bodyVelocity.Velocity = moveVector
+                    humanoidRootPart.CFrame = CFrame.new(humanoidRootPart.Position, humanoidRootPart.Position + camera.CFrame.LookVector)
+                end)
             end
         end
+    else
+        if bodyVelocity then bodyVelocity:Destroy() end
+        if bodyAngularVelocity then bodyAngularVelocity:Destroy() end
     end
+end
 
-    local function animateSplashAndOpen()
-        Splash.Visible = true
-        local t1 = TweenService:Create(SplashCard, TweenInfo.new(0.6, Enum.EasingStyle.Quad), {Size = UDim2.new(0.72,0,0.28,0)})
-        t1:Play()
-        t1.Completed:Wait()
-        wait(0.5)
-        local t2 = TweenService:Create(SplashCard, TweenInfo.new(0.6, Enum.EasingStyle.Quad), {Position = UDim2.new(0.14,0,0.18,0)})
-        t2:Play()
-        t2.Completed:Wait()
-        wait(0.6)
-        local t3 = TweenService:Create(SplashCard, TweenInfo.new(0.6, Enum.EasingStyle.Quad), {Position = UDim2.new(-1,0,0.18,0)})
-        t3:Play()
-        t3.Completed:Wait()
-        Splash.Visible = false
-        showPage(PageAuto)
+-- ESP Function (simplified from original)
+local ESP = {}
+local function createESP(player)
+    if player == LocalPlayer then return end
+    local character = player.Character or player.CharacterAdded:Wait()
+    local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+    local billboard = Instance.new("BillboardGui")
+    billboard.Adornee = humanoidRootPart
+    billboard.Size = UDim2.new(0, 100, 0, 50)
+    billboard.StudsOffset = Vector3.new(0, 3, 0)
+    billboard.Parent = humanoidRootPart
+    
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, 0, 1, 0)
+    label.BackgroundTransparency = 1
+    label.Text = player.Name
+    label.TextColor3 = Color3.fromRGB(255, 0, 0)
+    label.TextScaled = true
+    label.Font = Enum.Font.GothamBold
+    label.Parent = billboard
+    
+    ESP[player] = {billboard = billboard, label = label}
+end
+
+local function toggleESP()
+    espEnabled = not espEnabled
+    ESPToggle.Text = "ESP: " .. (espEnabled and "ON" or "OFF")
+    ESPToggle.BackgroundColor3 = espEnabled and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(50, 50, 50)
+    
+    if espEnabled then
+        for _, player in pairs(Players:GetPlayers()) do
+            createESP(player)
+        end
+        Players.PlayerAdded:Connect(createESP)
+        LocalPlayer.CharacterAdded:Connect(function()
+            for _, player in pairs(Players:GetPlayers()) do
+                if player ~= LocalPlayer then createESP(player) end
+            end
+        end)
+    else
+        for player, esp in pairs(ESP) do
+            if esp.billboard then esp.billboard:Destroy() end
+        end
+        ESP = {}
     end
+end
 
-    OpenBtn.MouseButton1Click:Connect(function()
-        animateSplashAndOpen()
-    end)
-
-    TabAuto.MouseButton1Click:Connect(function()
-        showPage(PageAuto)
-    end)
-    TabESP.MouseButton1Click:Connect(function()
-        showPage(PageESP)
-    end)
-    TabAFK.MouseButton1Click:Connect(function()
-        showPage(PageAFK)
-    end)
-    TabSteal.MouseButton1Click:Connect(function()
-        showPage(PageSteal)
-    end)
-    TabSettings.MouseButton1Click:Connect(function()
-        showPage(PageSettings)
-    end)
-
-    local function makeSection(parent,title,h)
-        local s = Instance.new("Frame", parent)
-        s.Size = UDim2.new(1,0,0,h or 120)
-        s.BackgroundColor3 = Color3.fromRGB(18,20,22)
-        s.BorderSizePixel = 0
-        local c = Instance.new("UICorner", s)
-        c.CornerRadius = UDim.new(0,8)
-        local t = Instance.new("TextLabel", s)
-        t.Size = UDim2.new(1,-20,0,28)
-        t.Position = UDim2.new(0,10,0,8)
-        t.BackgroundTransparency = 1
-        t.Font = Enum.Font.GothamBold
-        t.TextSize = 16
-        t.Text = title
-        t.TextColor3 = Color3.fromRGB(175,205,235)
-        return s
+-- MM2 Helpers (from original)
+local function findMurderer()
+    for _, v in pairs(Players:GetPlayers()) do
+        if v.Character and v.Character:FindFirstChild("Knife") then return v end
     end
+    return nil
+end
 
-    local AutoSection = makeSection(PageAuto, "AutoFarm Settings", 140)
-    AutoSection.Position = UDim2.new(0,0,0,6)
+local function findSheriff()
+    for _, v in pairs(Players:GetPlayers()) do
+        if v.Character and v.Character:FindFirstChild("Gun") then return v end
+    end
+    return nil
+end
 
-    local AutoToggle = Instance.new("TextButton", AutoSection)
-    AutoToggle.Size = UDim2.new(0,200,0,40)
-    AutoToggle.Position = UDim2.new(0,12,0,44)
-    AutoToggle.BackgroundColor3 = Color3.fromRGB(24,26,30)
-    AutoToggle.Font = Enum.Font.GothamSemibold
-    AutoToggle.TextSize = 14
-    AutoToggle.Text = "Enable Coin/Ball Farm"
-    AutoToggle.BorderSizePixel = 0
-    local AutoCorner = Instance.new("UICorner", AutoToggle)
-    AutoCorner.CornerRadius = UDim.new(0,8)
+local function miniFling(targetPlayer)
+    if not targetPlayer or not targetPlayer.Character then return end
+    local humanoidRootPart = targetPlayer.Character:FindFirstChild("HumanoidRootPart")
+    if humanoidRootPart then
+        humanoidRootPart.Velocity = Vector3.new(0, 50, 0)
+        humanoidRootPart.RotVelocity = Vector3.new(math.random(-50, 50), math.random(-50, 50), math.random(-50, 50))
+    end
+end
 
-    local SpeedBox = Instance.new("TextBox", AutoSection)
-    SpeedBox.Size = UDim2.new(0,120,0,30)
-    SpeedBox.Position = UDim2.new(0,220,0,48)
-    SpeedBox.BackgroundColor3 = Color3.fromRGB(14,16,18)
-    SpeedBox.TextColor3 = Color3.fromRGB(220,230,240)
-    SpeedBox.Text = "15"
-    SpeedBox.Font = Enum.Font.Gotham
-    SpeedBox.TextSize = 14
-    SpeedBox.BorderSizePixel = 0
-
-    local AFKSection = makeSection(PageAFK, "Anti-AFK")
-    AFKSection.Position = UDim2.new(0,0,0,6)
-    local AFKBtn = Instance.new("TextButton", AFKSection)
-    AFKBtn.Size = UDim2.new(0,180,0,40)
-    AFKBtn.Position = UDim2.new(0,12,0,44)
-    AFKBtn.BackgroundColor3 = Color3.fromRGB(24,26,30)
-    AFKBtn.Font = Enum.Font.GothamSemibold
-    AFKBtn.TextSize = 14
-    AFKBtn.Text = "Enable Anti-AFK"
-    AFKBtn.BorderSizePixel = 0
-    local AFKCorner = Instance.new("UICorner", AFKBtn)
-    AFKCorner.CornerRadius = UDim.new(0,8)
-
-    local StealSection = makeSection(PageSteal, "Anti-Steal")
-    StealSection.Position = UDim2.new(0,0,0,6)
-    local StealToggle = Instance.new("TextButton", StealSection)
-    StealToggle.Size = UDim2.new(0,160,0,40)
-    StealToggle.Position = UDim2.new(0,12,0,44)
-    StealToggle.BackgroundColor3 = Color3.fromRGB(24,26,30)
-    StealToggle.Font = Enum.Font.GothamSemibold
-    StealToggle.TextSize = 14
-    StealToggle.Text = "Enable Anti-Steal"
-    StealToggle.BorderSizePixel = 0
-    local StealCorner = Instance.new("UICorner", StealToggle)
-    StealCorner.CornerRadius = UDim.new(0,8)
-
-    local ESPSection = makeSection(PageESP, "ESP Controls", 180)
-    ESPSection.Position = UDim2.new(0,0,0,6)
-    local ESPToggle = Instance.new("TextButton", ESPSection)
-    ESPToggle.Size = UDim2.new(0,160,0,40)
-    ESPToggle.Position = UDim2.new(0,12,0,44)
-    ESPToggle.BackgroundColor3 = Color3.fromRGB(24,26,30)
-    ESPToggle.Font = Enum.Font.GothamSemibold
-    ESPToggle.TextSize = 14
-    ESPToggle.Text = "Toggle Player ESP"
-    ESPToggle.BorderSizePixel = 0
-    local ESPCorner = Instance.new("UICorner", ESPToggle)
-    ESPCorner.CornerRadius = UDim.new(0,8)
-
-    local ESPCoinsToggle = Instance.new("TextButton", ESPSection)
-    ESPCoinsToggle.Size = UDim2.new(0,160,0,36)
-    ESPCoinsToggle.Position = UDim2.new(0,190,0,44)
-    ESPCoinsToggle.BackgroundColor3 = Color3.fromRGB(24,26,30)
-    ESPCoinsToggle.Font = Enum.Font.GothamSemibold
-    ESPCoinsToggle.TextSize = 14
-    ESPCoinsToggle.Text = "Toggle Coin Markers"
-    ESPCoinsToggle.BorderSizePixel = 0
-    local ESPCoinsCorner = Instance.new("UICorner", ESPCoinsToggle)
-    ESPCoinsCorner.CornerRadius = UDim.new(0,8)
-
-    local SettingsSection = makeSection(PageSettings, "Interface", 160)
-    SettingsSection.Position = UDim2.new(0,0,0,6)
-    local DraggableToggle = Instance.new("TextButton", SettingsSection)
-    DraggableToggle.Size = UDim2.new(0,190,0,40)
-    DraggableToggle.Position = UDim2.new(0,12,0,44)
-    DraggableToggle.BackgroundColor3 = Color3.fromRGB(24,26,30)
-    DraggableToggle.Font = Enum.Font.GothamSemibold
-    DraggableToggle.TextSize = 14
-    DraggableToggle.Text = "Enable Dragging"
-    DraggableToggle.BorderSizePixel = 0
-    local ToggleBottom = Instance.new("TextButton", Root)
-    ToggleBottom.Size = UDim2.new(0,160,0,36)
-    ToggleBottom.Position = UDim2.new(0.5,-80,1,-50)
-    ToggleBottom.AnchorPoint = Vector2.new(0.5,0)
-    ToggleBottom.BackgroundColor3 = Color3.fromRGB(26,28,32)
-    ToggleBottom.Font = Enum.Font.GothamSemibold
-    ToggleBottom.TextSize = 14
-    ToggleBottom.Text = "Hide UI"
-    ToggleBottom.BorderSizePixel = 0
-    local ToggleCorner = Instance.new("UICorner", ToggleBottom)
-    ToggleCorner.CornerRadius = UDim.new(0,8)
-
-    local Notifications = Instance.new("Frame", Root)
-    Notifications.Size = UDim2.new(0,300,0,72)
-    Notifications.Position = UDim2.new(1,-320,0,22)
-    Notifications.BackgroundColor3 = Color3.fromRGB(16,18,20)
-    Notifications.BorderSizePixel = 0
-    Notifications.Visible = false
-    local NotCorner = Instance.new("UICorner", Notifications)
-    NotCorner.CornerRadius = UDim.new(0,10)
-    local NotLabel = Instance.new("TextLabel", Notifications)
-    NotLabel.Size = UDim2.new(1,-20,1,-20)
-    NotLabel.Position = UDim2.new(0,10,0,10)
-    NotLabel.BackgroundTransparency = 1
-    NotLabel.Font = Enum.Font.Gotham
-    NotLabel.TextSize = 14
-    NotLabel.TextColor3 = Color3.fromRGB(220,230,240)
-    NotLabel.TextWrapped = true
-
-    local function notify(txt)
-        NotLabel.Text = txt
-        Notifications.Position = UDim2.new(1,-320,0,22)
-        Notifications.Visible = true
-        local inTween = TweenService:Create(Notifications, TweenInfo.new(0.45, Enum.EasingStyle.Quad), {Position = UDim2.new(1,-340,0,22)})
-        inTween:Play()
-        task.delay(3, function()
-            local outTween = TweenService:Create(Notifications, TweenInfo.new(0.45, Enum.EasingStyle.Quad), {Position = UDim2.new(1,400,0,22)})
-            outTween:Play()
-            outTween.Completed:Wait()
-            Notifications.Visible = false
+-- Auto Shoot (from original, simplified)
+local function toggleAutoShoot()
+    autoShooting = not autoShooting
+    if autoShooting then
+        notify("Flashlight Hub", "Auto-shooting enabled. Only works as Sheriff.")
+        spawn(function()
+            while autoShooting do
+                wait(0.1)
+                if findSheriff() ~= LocalPlayer then continue end
+                local murderer = findMurderer()
+                if not murderer or not LocalPlayer.Character:FindFirstChild("Gun") then continue end
+                local gun = LocalPlayer.Character.Gun
+                local knifeLocal = gun:FindFirstChild("KnifeLocal")
+                if knifeLocal then
+                    local remote = knifeLocal:FindFirstChild("CreateBeam")
+                    if remote and remote:IsA("RemoteFunction") then
+                        local predictedPos = murderer.Character.HumanoidRootPart.Position + murderer.Character.HumanoidRootPart.Velocity * 0.2
+                        remote:InvokeServer(1, predictedPos, "AH2")
+                    end
+                end
+            end
         end)
     end
+end
 
-    local farmRunning = false
-    local collected = 0
-    local startTick = 0
-    local speed = 15
-    local visited = {}
-    local function sanitizeSpeed(s)
-        local n = tonumber(s)
-        if not n then return nil end
-        return math.clamp(math.floor(n),5,50)
-    end
-
-    SpeedBox.FocusLost:Connect(function(enter)
-        local n = sanitizeSpeed(SpeedBox.Text)
-        if n then
-            speed = n
-            SpeedBox.Text = tostring(n)
-            notify("Speed set to "..tostring(n))
-        else
-            SpeedBox.Text = tostring(speed)
-            notify("Invalid speed, using "..tostring(speed))
-        end
-    end)
-
-    AutoToggle.MouseButton1Click:Connect(function()
-        farmRunning = not farmRunning
-        if farmRunning then
-            collected = 0
-            startTick = tick()
-            visited = {}
-            AutoToggle.Text = "Disable Coin/Ball Farm"
-            notify("AutoFarm started")
-            task.spawn(function()
-                while farmRunning do
-                    local elapsed = tick() - startTick
-                    CollectedLbl.Text = "Collected: "..tostring(collected)
-                    TimeLbl.Text = "Time Active: "..tostring(math.floor(elapsed)).."s"
-                    RateLbl.Text = "Coins/Hour: "..tostring(math.floor((collected / math.max(1, elapsed)) * 3600))
-                    task.wait(0.6)
-                end
-            end)
-            task.spawn(function()
-                while farmRunning do
-                    local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-                    local hrp = char:FindFirstChild("HumanoidRootPart")
-                    if hrp then
-                        local closest, dist = nil, math.huge
-                        for _,obj in ipairs(workspace:GetDescendants()) do
-                            if obj:IsA("BasePart") and obj.Name == "Coin_Server" and obj:GetAttribute and obj:GetAttribute("CoinID") == "BeachBall" and not visited[obj] then
-                                local d = (obj.Position - hrp.Position).Magnitude
-                                if d < dist and d <= 300 then
-                                    closest = obj
-                                    dist = d
-                                end
+-- Kill Aura (from original)
+local function toggleKillAura()
+    killAuraEnabled = not killAuraEnabled
+    KillAuraToggle.Text = "Kill Aura: " .. (killAuraEnabled and "ON" or "OFF")
+    KillAuraToggle.BackgroundColor3 = killAuraEnabled and Color3.fromRGB(255, 0, 0) or Color3.fromRGB(50, 50, 50)
+    
+    if killAuraEnabled and findMurderer() == LocalPlayer then
+        notify("Flashlight Hub", "Kill Aura enabled.")
+        spawn(function()
+            while killAuraEnabled do
+                wait(0.1)
+                for _, player in pairs(Players:GetPlayers()) do
+                    if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                        local distance = (player.Character.HumanoidRootPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
+                        if distance < 10 then
+                            player.Character.HumanoidRootPart.CFrame = LocalPlayer.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, -2)
+                            if LocalPlayer.Character:FindFirstChild("Knife") then
+                                LocalPlayer.Character.Knife.Stab:FireServer("Slash")
                             end
-                        end
-                        if closest and closest.Parent then
-                            visited[closest] = true
-                            for _,part in pairs(char:GetChildren()) do
-                                if part:IsA("BasePart") then
-                                    part.CanCollide = false
-                                end
-                            end
-                            local tw = TweenService:Create(hrp, TweenInfo.new(dist / speed, Enum.EasingStyle.Linear), {CFrame = CFrame.new(closest.Position + Vector3.new(0,2,0))})
-                            tw:Play()
-                            tw.Completed:Wait()
-                            collected = collected + 1
                         end
                     end
-                    task.wait(0.12)
                 end
-            end)
-        else
-            AutoToggle.Text = "Enable Coin/Ball Farm"
-            notify("AutoFarm stopped")
-        end
-    end)
-
-    local antiAFKOn = false
-    AFKBtn.MouseButton1Click:Connect(function()
-        antiAFKOn = true
-        local vu = game:GetService("VirtualUser")
-        LocalPlayer.Idled:Connect(function()
-            vu:CaptureController()
-            vu:ClickButton2(Vector2.new(0,0))
-        end)
-        notify("Anti-AFK running")
-    end)
-
-    local antiStealOn = false
-    StealToggle.MouseButton1Click:Connect(function()
-        antiStealOn = not antiStealOn
-        if antiStealOn then
-            StealToggle.Text = "Disable Anti-Steal"
-            notify("Anti-Steal active")
-        else
-            StealToggle.Text = "Enable Anti-Steal"
-            notify("Anti-Steal disabled")
-        end
-    end)
-
-    local espPlayersOn = true
-    local espCoinsOn = true
-    local espFolderPlayers = Instance.new("Folder", workspace)
-    espFolderPlayers.Name = "FlashlightESPPlayers"
-    local espFolderCoins = Instance.new("Folder", workspace)
-    espFolderCoins.Name = "FlashlightESPCoins"
-
-    local function makeBillboard(text, parent, size)
-        local b = Instance.new("BillboardGui")
-        b.Adornee = parent
-        b.AlwaysOnTop = true
-        b.Size = UDim2.new(0,120,0,40)
-        b.StudsOffset = Vector3.new(0,2.4,0)
-        b.Parent = parent
-        local t = Instance.new("TextLabel", b)
-        t.Size = UDim2.new(1,0,1,0)
-        t.BackgroundTransparency = 1
-        t.Font = Enum.Font.GothamSemibold
-        t.TextSize = 14
-        t.Text = text
-        t.TextColor3 = Color3.fromRGB(255,255,255)
-        return b, t
-    end
-
-    local espPlayers = {}
-    local function createPlayerESP(p)
-        if not p.Character then return end
-        local head = p.Character:FindFirstChild("Head")
-        if not head then return end
-        if espPlayers[p] then return end
-        local box, label = makeBillboard(p.Name, head)
-        label.Text = p.Name
-        espPlayers[p] = {gui = box, label = label}
-    end
-
-    local function removePlayerESP(p)
-        if espPlayers[p] then
-            if espPlayers[p].gui and espPlayers[p].gui.Parent then
-                espPlayers[p].gui:Destroy()
-            end
-            espPlayers[p] = nil
-        end
-    end
-
-    local function refreshPlayerESPs()
-        for _,p in pairs(Players:GetPlayers()) do
-            if p ~= LocalPlayer then
-                if espPlayersOn then
-                    createPlayerESP(p)
-                else
-                    removePlayerESP(p)
-                end
-            end
-        end
-    end
-
-    Players.PlayerAdded:Connect(function(p)
-        p.CharacterAdded:Connect(function()
-            if espPlayersOn then
-                createPlayerESP(p)
             end
         end)
-    end)
+    end
+end
 
-    Players.PlayerRemoving:Connect(function(p)
-        removePlayerESP(p)
-    end)
-
-    for _,p in pairs(Players:GetPlayers()) do
-        if p ~= LocalPlayer then
-            p.CharacterAdded:Connect(function()
-                if espPlayersOn then createPlayerESP(p) end
-            end)
-            if p.Character and espPlayersOn then createPlayerESP(p) end
+-- Shoot Murderer
+local function shootMurderer()
+    if findSheriff() ~= LocalPlayer then
+        notify("Flashlight Hub", "You must be Sheriff!")
+        return
+    end
+    local murderer = findMurderer()
+    if not murderer then
+        notify("Flashlight Hub", "No murderer found!")
+        return
+    end
+    if not LocalPlayer.Character:FindFirstChild("Gun") then
+        notify("Flashlight Hub", "Equip your gun first!")
+        return
+    end
+    local gun = LocalPlayer.Character.Gun
+    local knifeLocal = gun:FindFirstChild("KnifeLocal")
+    if knifeLocal then
+        local remote = knifeLocal:FindFirstChild("CreateBeam")
+        if remote and remote:IsA("RemoteFunction") then
+            local predictedPos = murderer.Character.HumanoidRootPart.Position + murderer.Character.HumanoidRootPart.Velocity * 0.2
+            remote:InvokeServer(1, predictedPos, "AH2")
+            notify("Flashlight Hub", "Shot fired!")
         end
     end
+end
 
-    local coinMarkers = {}
-    local function addCoinMarker(coin)
-        if coinMarkers[coin] then return end
-        if not coin:IsA("BasePart") then return end
-        local gui, lbl = makeBillboard("Coin", coin)
-        lbl.Text = "Ball"
-        lbl.TextColor3 = Color3.fromRGB(255,230,120)
-        coinMarkers[coin] = gui
+-- Fling Murderer
+local function flingMurderer()
+    local murderer = findMurderer()
+    if not murderer then
+        notify("Flashlight Hub", "No murderer found!")
+        return
     end
+    miniFling(murderer)
+    notify("Flashlight Hub", "Murderer flung!")
+end
 
-    local function removeCoinMarker(coin)
-        if coinMarkers[coin] then
-            if coinMarkers[coin].Parent then coinMarkers[coin]:Destroy() end
-            coinMarkers[coin] = nil
-        end
-    end
-
-    local function refreshCoins()
-        for _,obj in ipairs(workspace:GetDescendants()) do
-            if obj:IsA("BasePart") and obj.Name == "Coin_Server" and obj:GetAttribute and obj:GetAttribute("CoinID") == "BeachBall" then
-                if espCoinsOn then
-                    addCoinMarker(obj)
-                else
-                    removeCoinMarker(obj)
-                end
-            end
-        end
-    end
-
-    ESPToggle.MouseButton1Click:Connect(function()
-        espPlayersOn = not espPlayersOn
-        ESPToggle.Text = espPlayersOn and "Disable Player ESP" or "Enable Player ESP"
-        refreshPlayerESPs()
-    end)
-
-    ESPCoinsToggle.MouseButton1Click:Connect(function()
-        espCoinsOn = not espCoinsOn
-        ESPCoinsToggle.Text = espCoinsOn and "Disable Coin Markers" or "Enable Coin Markers"
-        refreshCoins()
-    end)
-
-    RunService.Heartbeat:Connect(function()
-        if espPlayersOn then
-            for p,data in pairs(espPlayers) do
-                if p.Character and p.Character:FindFirstChild("Humanoid") then
-                    local hum = p.Character:FindFirstChild("Humanoid")
-                    local hp = math.floor(hum.Health)
-                    data.label.Text = p.Name.." • "..tostring(hp)
-                end
-            end
-        end
-        if espCoinsOn then
-            for coin,gui in pairs(coinMarkers) do
-                if not coin.Parent then
-                    removeCoinMarker(coin)
-                end
-            end
-        end
-    end)
-
-    workspace.DescendantAdded:Connect(function(d)
-        if d:IsA("BasePart") and d.Name == "Coin_Server" and d:GetAttribute and d:GetAttribute("CoinID") == "BeachBall" then
-            if espCoinsOn then addCoinMarker(d) end
-        end
-    end)
-
-    workspace.DescendantRemoving:Connect(function(d)
-        if d:IsA("BasePart") and d.Name == "Coin_Server" then
-            removeCoinMarker(d)
-        end
-    end)
-
-    local draggingEnabled = false
-    local dragging = false
-    local dragOffset = Vector2.new(0,0)
-
-    DraggableToggle.MouseButton1Click:Connect(function()
-        draggingEnabled = not draggingEnabled
-        DraggableToggle.Text = draggingEnabled and "Disable Dragging" or "Enable Dragging"
-    end)
-
-    Root.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 and draggingEnabled then
-            dragging = true
-            local mouse = UserInputService:GetMouseLocation()
-            local absPos = Vector2.new(Root.AbsolutePosition.X, Root.AbsolutePosition.Y)
-            dragOffset = Vector2.new(mouse.X, mouse.Y) - absPos
-        end
-    end)
-
-    Root.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = false
-        end
-    end)
-
-    UserInputService.InputChanged:Connect(function(input)
-        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-            local pos = UserInputService:GetMouseLocation() - dragOffset
-            Root.Position = UDim2.new(0, pos.X, 0, pos.Y)
-        end
-    end)
-
-    local uiVisible = true
-    ToggleBottom.MouseButton1Click:Connect(function()
-        uiVisible = not uiVisible
-        Root.Visible = uiVisible
-        ToggleBottom.Text = uiVisible and "Hide UI" or "Show UI"
-    end)
-
-    local function protectTools()
-        if not LocalPlayer.Character then return end
-        local char = LocalPlayer.Character
-        for _,t in pairs(char:GetChildren()) do
-            if t:IsA("Tool") then
-                pcall(function() t.Parent = char end)
-            end
-        end
-        if LocalPlayer:FindFirstChild("Backpack") then
-            for _,tb in pairs(LocalPlayer.Backpack:GetChildren()) do
-                if tb:IsA("Tool") then
-                    pcall(function() tb.Parent = LocalPlayer.Backpack end)
-                end
-            end
-        end
-    end
-
-    RunService.Stepped:Connect(function()
-        if antiStealOn then
-            protectTools()
-        end
-    end)
-
-    local function cleanOldESP()
-        for p,data in pairs(espPlayers) do
-            if not p.Parent then removePlayerESP(p) end
-        end
-        for coin,gui in pairs(coinMarkers) do
-            if not coin.Parent then removeCoinMarker(coin) end
-        end
-    end
-
-    RunService.Heartbeat:Connect(cleanOldESP)
-
-    LocalPlayer.CharacterAdded:Connect(function(c)
-        if espPlayersOn then
-            for _,p in pairs(Players:GetPlayers()) do
-                if p ~= LocalPlayer and p.Character then createPlayerESP(p) end
-            end
-        end
-    end)
-
-    for _,p in pairs(Players:GetPlayers()) do
-        if p ~= LocalPlayer and p.Character then createPlayerESP(p) end
-    end
-
-    notify("Flashlight Hub ready • Press the bottom button to hide")
-
-    UserInputService.InputBegan:Connect(function(input, processed)
-        if processed then return end
-        if input.KeyCode == Enum.KeyCode.RightControl then
-            uiVisible = not uiVisible
-            Root.Visible = uiVisible
-            ToggleBottom.Text = uiVisible and "Hide UI" or "Show UI"
-        end
-    end)
+-- Event Connections
+CloseButton.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy()
 end)
+
+FlyToggle.MouseButton1Click:Connect(toggleFly)
+ESPToggle.MouseButton1Click:Connect(toggleESP)
+AutoShootButton.MouseButton1Click:Connect(toggleAutoShoot)
+KillAuraToggle.MouseButton1Click:Connect(toggleKillAura)
+ShootMurdererButton.MouseButton1Click:Connect(shootMurderer)
+FlingMurdererButton.MouseButton1Click:Connect(flingMurderer)
+
+-- Initial notification
+notify("Flashlight Hub", "Loaded! Triple-click to open if hidden.", 5)
+
+-- Auto-open (simulate triple-click by making visible)
+MainFrame.Visible = true
+
+-- Animation on load
+local openTween = TweenService:Create(MainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+    Position = UDim2.new(0.5, -200, 0.5, -150)
+})
+openTween:Play()
+
+print("Flashlight Hub loaded by jjs_dev!")
